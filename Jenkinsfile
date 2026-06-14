@@ -2,26 +2,56 @@ pipeline {
     agent any
 
     triggers {
-        // Опрашивать GitHub на наличие новых коммитов каждую минуту
         pollSCM('* * * * *')
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-                // Очищаем рабочую директорию перед сборкой
                 cleanWs()
-                // Скачиваем актуальный код из Git
                 checkout scm
+            }
+        }
+
+        stage('Pre-Build Unit Tests') {
+            steps {
+                echo 'Запускаем unit tests в Python...'
+                sh 'python3 -m venv testvenv'
+                sh './testvenv/bin/pip install -r backend/requirements.txt'
+                sh './testvenv/bin/python backend/test_app.py'
             }
         }
 
         stage('Docker Deploy') {
             steps {
                 echo 'Перезапускаем контейнеры команды project_04...'
-                // Явно указываем имя проекта через -p, чтобы перетереть прошлый деплой
                 sh 'docker compose -p project_04 down'
                 sh 'docker compose -p project_04 up -d --build'
+            }
+        }
+
+        stage('Post-Build Smoke Tests') {
+            steps {
+                echo 'Проверяем доступность фронтенда...'
+                sh '''
+                    sleep 5
+                    STATUSCODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8004)
+                    echo "Frontend HTTP Status Code: $STATUSCODE"
+                    if [ "$STATUSCODE" -ne 200 ]; then
+                      echo "Ошибка: фронтенд вернул код $STATUSCODE вместо 200!"
+                      exit 1
+                    fi
+                '''
+
+                echo 'Проверяем health endpoint backend через Nginx...'
+                sh '''
+                    APICODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8004/api/health)
+                    echo "Backend API HTTP Status Code: $APICODE"
+                    if [ "$APICODE" -ne 200 ]; then
+                      echo "Ошибка: API вернул код $APICODE вместо 200!"
+                      exit 1
+                    fi
+                '''
             }
         }
     }
