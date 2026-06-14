@@ -6,7 +6,7 @@
     # --- НАСТРОЙКИ КОМАНДЫ ---
     group_code: "04" # Укажите ваш двухзначный код группы (например, "03")
     repo_url: "https://github.com/lesnushka-prog/notes-devops-team04.git"
-    repo_branch: "second_part"
+    repo_branch: "third_part"
 
     repo_root: "/opt/project_{{ group_code }}"
     old_service_name: "project_{{ group_code }}-backend.service"
