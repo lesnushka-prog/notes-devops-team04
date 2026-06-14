@@ -17,7 +17,7 @@ pipeline {
             steps {
                 echo 'Запускаем unit tests в Python...'
                 sh 'python3 -m venv testvenv'
-                sh './testvenv/bin/pip install -r backend/requirements.txt'
+                sh 'testvenv/bin/python -m pip install -r backend/requirements.txt'
                 sh './testvenv/bin/python backend/test_app.py'
             }
         }
