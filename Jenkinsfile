@@ -16,11 +16,13 @@ pipeline {
         stage('Pre-Build Unit Tests') {
             steps {
                 echo 'Запускаем unit tests в Python...'
-                sh 'python3 -m venv testvenv'
-		sh 'python3 -m venv --system-site-packages testvenv || true 
-		./testvenv/bin/python3 -m pip install --upgrade pip'
-                sh './testvenv/bin/pip install -r backend/requirements.txt'
-                sh './testvenv/bin/python backend/test_app.py'
+		sh '''
+		    python3 -m venv testvenv
+		    python3 -m venv --system-site-packages testvenv || true
+		    ./testvenv/bin/python -m pip install --upgrade pip
+		    ./testvenv/bin/pip install -r backend/requirements.txt
+		    ./testvenv/bin/python backend/test_app.py
+		'''
             }
         }
 
